@@ -1,43 +1,65 @@
+/**
+ * Adds a new component to the project.
+ * @module AddcomponentGenerator
+ * @requires chalk
+ * @requires mkdirp
+ * @requires underscore.string
+ * @requires yeoman-generator
+ * @author mail@markus-falk.com
+ */
+
 'use strict';
-var util = require('util');
-var yeoman = require('yeoman-generator');
-var chalk = require('chalk');
-var string = require('underscore.string');
-var wire = require("html-wiring");
-var mkdirp = require('mkdirp');
 
-var AddcomponentGenerator = yeoman.generators.NamedBase.extend({
+var
 
+chalk = require('chalk'),
+mkdirp = require('mkdirp'),
+string = require('underscore.string'),
+yeoman = require('yeoman-generator'),
+lineNumber = require('line-number'),
+
+AddcomponentGenerator = yeoman.generators.NamedBase.extend({
+
+  /**
+   * Loads package.json and waits for callback to finish. Also tells user what happened and gives a little help.
+   * @function init
+   * @private
+   */
   init: function () {
-
-    // this.argument('name');
 
     this.pkg = this.fs.readJSON('package.json');
 
     this.on('end', function () {
 
-      this.log('\n');
-
+      // output a little help
       if (this.ComponentType === 'standardModule') {
-        this.log('Added component ' + this.name + ' to components/app/' + string.slugify(this.name));
         if(this.includeHTML) {
           this.log('You can use it in your HTML with ' + chalk.yellow('{app:{' + string.slugify(this.name) + '}}'));
         }
       } else {
-        this.log('Added component ' + this.name + ' to components/app/_deferred/' + string.slugify(this.name));
         if(this.includeHTML) {
           this.log('You can use it in your HTML with ' + chalk.yellow('{deferred:{' + string.slugify(this.name) + '}}'));
         }
       }
 
-      this.log('\n');
     });
   },
 
+  /**
+   * Converts user's answers into Booleans.
+   * @function _hasFeature
+   * @returns {Boolean} Is this feature wanted?
+   * @private
+   */
   _hasFeature: function (feature) {
     return this.features && this.features.indexOf(feature) !== -1;
   },
 
+  /**
+   * Asks user questions about the component.
+   * @function askForApp
+   * @private
+   */
   askForApp: function () {
     var done = this.async();
 
@@ -99,6 +121,11 @@ var AddcomponentGenerator = yeoman.generators.NamedBase.extend({
     }.bind(this));
   },
 
+  /**
+   * Set paths depending on user's answers.
+   * @function setDefaults
+   * @private
+   */
   setDefaults: function () {
 
     if (this.ComponentType === 'standardModule') {
@@ -109,6 +136,11 @@ var AddcomponentGenerator = yeoman.generators.NamedBase.extend({
 
   },
 
+  /**
+   * Add all wanted files to the new component.
+   * @function addApp
+   * @private
+   */
   addApp: function () {
 
     // set path
@@ -170,54 +202,84 @@ var AddcomponentGenerator = yeoman.generators.NamedBase.extend({
     }
   },
 
+  /**
+   * Add the new component to the scss base file.
+   * @function addStyling
+   * @private
+   */
   addStyling: function () {
     if (this.includeSCSS) {
 
-      var path = 'components/' + this.pkg.name + '.scss';
+      var
+      path = 'components/' + this.pkg.name + '.scss';
 
       // also enable to use hidden scss with _
       // this way project-name.scss can be imported
       // for theming support
-
       if(!this.fs.exists(path)) {
         path = 'components/_' + this.pkg.name + '.scss';
       }
 
-      var file = this.fs.read(path);
+      // read
+      var
+      file = this.fs.read(path),
+      regex = new RegExp('/' + string.slugify(this.name) + '/', 'g'),
+      line = lineNumber(file, regex);
 
-      if (this.ComponentType === 'standardModule') {
-        file += '@import "app/' + string.slugify(this.name) + '/' + string.slugify(this.name) + '";\n';
+      if (line.length === 0) {
+
+        // compose
+        if (this.ComponentType === 'standardModule') {
+          file += '@import "app/' + string.slugify(this.name) + '/' + string.slugify(this.name) + '";\n';
+        } else {
+          file += '@import "app/_deferred/' + string.slugify(this.name) + '/' + string.slugify(this.name) + '";\n';
+        }
+
+        // write
+        this.fs.write(path, file);
+
       } else {
-        file += '@import "app/_deferred/' + string.slugify(this.name) + '/' + string.slugify(this.name) + '";\n';
+        // component is already in main scss file
+        this.log(chalk.cyan('already defined on line: ') + chalk.yellow(line[0].number) + ' (' + path + ')');
       }
-
-      this.fs.write(path, file);
     }
   },
 
+  /**
+   * Add the new component to the requirejs config file.
+   * @function addToRequireJS
+   * @private
+   */
   addToRequireJS: function () {
 
-    if(this.includeJS) {
+    if (this.includeJS) {
 
       var
       path = 'components/' + this.pkg.name + '.js',
-      file = this.fs.read(path);
+      file = this.fs.read(path),
+      match = '//{{app}}',
+      regex = new RegExp('/' + string.slugify(this.name) + '/', 'g'),
+      line = lineNumber(file, regex),
+      newcontent,
+      newfile;
 
-      if(this.includeJS) {
-        var
-        match = '//{{app}}',
-        newcontent;
+      if (line.length === 0) {
 
+        // compose
         if (this.ComponentType === 'standardModule') {
           newcontent = '//{{app}}\n    \'' + string.slugify(this.name) + '\': \'' + 'app/' + string.slugify(this.name) + '/'+ string.slugify(this.name) + '\',';
         } else {
           newcontent = '//{{app}}\n    \'' + string.slugify(this.name) + '\': \'' + 'app/_deferred/' + string.slugify(this.name) + '/'+ string.slugify(this.name) + '\',';
         }
 
-        var newfile = file.replace(match, newcontent);
-      }
+        // replace and write if component isn't defined in config
+        newfile = file.replace(match, newcontent);
+        this.fs.write(path, newfile);
 
-      this.fs.write(path, newfile);
+      } else {
+        // component is already in config file
+        this.log(chalk.cyan('already defined on line: ') + chalk.yellow(line[0].number) + ' (' + path + ')');
+      }
 
     }
   }

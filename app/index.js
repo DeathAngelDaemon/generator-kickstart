@@ -1,12 +1,31 @@
+/**
+ * Generates a new project.
+ * @module KickstartGenerator
+ * @requires chalk
+ * @requires mkdirp
+ * @requires underscore.string
+ * @requires yeoman-generator
+ * @requires yosay
+ * @author mail@markus-falk.com
+ */
+
 'use strict';
-var yeoman = require('yeoman-generator');
-var yosay = require('yosay');
-var chalk = require('chalk');
-var string = require('underscore.string');
-var mkdirp = require('mkdirp');
 
-var KickstartGenerator = yeoman.generators.Base.extend({
+var
 
+chalk = require('chalk'),
+mkdirp = require('mkdirp'),
+string = require('underscore.string'),
+yeoman = require('yeoman-generator'),
+yosay = require('yosay'),
+
+KickstartGenerator = yeoman.generators.Base.extend({
+
+  /**
+   * Loads package.json and waits for callback to finish.
+   * @function init
+   * @private
+   */
   init: function () {
 
     this.pkg = require('../package.json');
@@ -21,11 +40,16 @@ var KickstartGenerator = yeoman.generators.Base.extend({
 
   },
 
+  /**
+   * Ask user on project details.
+   * @function askFor
+   * @private
+   */
   askFor: function () {
     var done = this.async();
 
     // Have Yeoman greet the user.
-    this.log(yosay('Thank you for choosing Kickstart. Sit back and relax while I setup your project.'));
+    this.log(yosay('Sit back and relax while I setup your project.'));
 
     var prompts = [
       {
@@ -61,6 +85,12 @@ var KickstartGenerator = yeoman.generators.Base.extend({
         default: false
       },
       {
+        type: 'confirm',
+        name: 'livereload',
+        message: 'Would you like include livereload.js into your sandbox.html?',
+        default: true
+      },
+      {
         type: 'list',
         name: 'WCAG2',
         message: 'What WCAG2A level would you like to develop for?',
@@ -90,6 +120,9 @@ var KickstartGenerator = yeoman.generators.Base.extend({
       // wysiwygCMS
       this.wysiwygCMS = answers.wysiwygCMS;
 
+      // livereload
+      this.livereload = answers.livereload;
+
       // Support level
       this.oldIE = answers.oldIE;
       this.WCAG2 = answers.WCAG2;
@@ -98,10 +131,20 @@ var KickstartGenerator = yeoman.generators.Base.extend({
     }.bind(this));
   },
 
+  /**
+   * Create empty folders needed for project.
+   * @function folders
+   * @private
+   */
   folders: function () {
     mkdirp.mkdirp('img');
   },
 
+  /**
+   * Create all package files from templates.
+   * @function packagefiles
+   * @private
+   */
   packagefiles: function () {
 
     this.fs.copyTpl(
@@ -120,8 +163,8 @@ var KickstartGenerator = yeoman.generators.Base.extend({
     );
 
     this.fs.copyTpl(
-      this.templatePath('_gemfile'),
-      this.destinationPath('Gemfile')
+      this.templatePath('_gems.rb'),
+      this.destinationPath('gems.rb')
     );
 
     this.fs.copyTpl(
@@ -132,6 +175,11 @@ var KickstartGenerator = yeoman.generators.Base.extend({
     this.fs.copyTpl(
       this.templatePath('_csslintrc'),
       this.destinationPath('.csslintrc')
+    );
+
+    this.fs.copyTpl(
+      this.templatePath('_scsslintrc'),
+      this.destinationPath('.scsslintrc')
     );
 
     this.fs.copyTpl(
@@ -181,6 +229,11 @@ var KickstartGenerator = yeoman.generators.Base.extend({
 
   },
 
+  /**
+   * Create all javascript files from templates.
+   * @function javascript
+   * @private
+   */
   javascript: function () {
 
     this.fs.copyTpl(
@@ -200,6 +253,11 @@ var KickstartGenerator = yeoman.generators.Base.extend({
     );
   },
 
+  /**
+   * Create all files needed for QUnit from templates.
+   * @function qunit
+   * @private
+   */
   qunit: function () {
 
     this.fs.copyTpl(
@@ -222,6 +280,11 @@ var KickstartGenerator = yeoman.generators.Base.extend({
 
   },
 
+  /**
+   * Create all scss files from templates.
+   * @function styles
+   * @private
+   */
   styles: function () {
     this.fs.copyTpl(
       this.templatePath('_frontend-template-setup.scss'),
@@ -229,6 +292,11 @@ var KickstartGenerator = yeoman.generators.Base.extend({
     );
   },
 
+  /**
+   * Create all HTML files from templates.
+   * @function html
+   * @private
+   */
   html: function () {
     this.fs.copyTpl(
       this.templatePath('_sandbox.html'),
@@ -236,11 +304,17 @@ var KickstartGenerator = yeoman.generators.Base.extend({
       {
         ProjectName: this.ProjectName,
         oldIE: this.oldIE,
-        wysiwygCMS: this.wysiwygCMS
+        wysiwygCMS: this.wysiwygCMS,
+        livereload: this.livereload
       }
     );
   },
 
+  /**
+   * Create all images from templates.
+   * @function images
+   * @private
+   */
   images: function () {
 
     this.fs.copy(
@@ -253,13 +327,32 @@ var KickstartGenerator = yeoman.generators.Base.extend({
       this.destinationPath('apple-touch-icon.png')
     );
 
+    this.fs.copy(
+      this.templatePath('_windows-tile-icon.png'),
+      this.destinationPath('windows-tile-icon.png')
+    );
+
   },
 
+  /**
+   * Automatically install all dependencies.
+   * @function install
+   * @private
+   */
   install: function () {
+
     if (!this.options['skip-install']) {
+      // bower & npm
       this.installDependencies();
+
+      // gems
+      this.log('Running ' + chalk.yellow.bold('bundle install') + ' for you to install the required dependencies. If this fails, try running the command yourself.');
+      this.log('\n');
+      this.spawnCommand('bundle', ['install']);
     }
+
   }
+
 });
 
 module.exports = KickstartGenerator;

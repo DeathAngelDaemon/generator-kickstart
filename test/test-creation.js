@@ -12,23 +12,23 @@ describe('Kickstart:app', function () {
       '.bowerrc',
       '.csslintrc',
       '.editorconfig',
-      '.editorconfig',
       '.gitignore',
       '.jshintrc',
-      '.jshintrc',
-      'Gemfile',
+      '.scsslintrc',
       'README.md',
       'apple-touch-icon.png',
+      'windows-tile-icon.png',
       'bower.json',
       'components/app/main.js',
-      'qunit/qunit-test-suite.html',
-      'qunit/unit.js',
-      'qunit/config.js',
       'components/foo.scss',
       'favicon.ico',
+      'gems.rb',
       'gruntfile.js',
       'img/',
       'package.json',
+      'qunit/config.js',
+      'qunit/qunit-test-suite.html',
+      'qunit/unit.js',
       'sandbox.html'
     ];
 
@@ -38,6 +38,7 @@ describe('Kickstart:app', function () {
       GraphicDesigner: 'Sascha',
       HTMLDeveloper: 'Markus',
       wysiwygCMS: false,
+      livereload: true,
       oldIE: false,
       WCAG2: 'A'
     };
@@ -67,6 +68,10 @@ describe('Kickstart:app', function () {
 
     it('is the right JS wired to sandbox.html?', function () {
       assert.fileContent('sandbox.html', /data-main="assets\/js\/foo"/);
+    });
+
+    it('is livereload.js wired to sandbox.html?', function () {
+      assert.fileContent('sandbox.html', /livereload\.js\?snipver/);
     });
 
   });
@@ -116,8 +121,8 @@ describe('Kickstart:app', function () {
     });
 
     it('is modernizr\'s shiv and printshiv set to true?', function () {
-      assert.fileContent('gruntfile.js', /"shiv" : true/);
-      assert.fileContent('gruntfile.js', /"printshiv" : true/);
+      assert.fileContent('gruntfile.js', /'shiv' : true/);
+      assert.fileContent('gruntfile.js', /'printshiv' : true/);
     });
 
     it('is legacy support noted in README?', function () {

@@ -1,23 +1,52 @@
+/**
+ * Adds a new component to the project.
+ * @module RemovecomponentGenerator
+ * @requires underscore.string
+ * @requires yeoman-generator
+ * @author mail@markus-falk.com
+ */
+
 'use strict';
-var yeoman = require('yeoman-generator');
-var string = require('underscore.string');
-var wire = require("html-wiring");
 
-module.exports = yeoman.generators.Base.extend({
+var
 
-  initializing: function () {
+string = require('underscore.string'),
+yeoman = require('yeoman-generator'),
+
+RemovecomponentGenerator = yeoman.generators.NamedBase.extend({
+
+  /**
+   * Sets required arguments.
+   * @function constructor
+   * @private
+   */
+  constructor: function () {
+    // console.log(yeoman.NamedBase);
+    yeoman.Base.apply(this, arguments);
 
     this.argument('name', {
       required: true,
       type: String,
-      desc: 'The component name'
+      desc: 'The component name.'
     });
-
-    this.pkg = this.fs.readJSON('package.json');
 
   },
 
-  askForApp: function () {
+  /**
+   * Loads package.json.
+   * @function getPackage
+   * @private
+   */
+  getPackage: function () {
+    this.pkg = this.fs.readJSON('package.json');
+  },
+
+  /**
+   * Asks user questions about the component.
+   * @function prompts
+   * @private
+   */
+  prompts: function () {
     var done = this.async();
 
     var prompts = [
@@ -44,6 +73,11 @@ module.exports = yeoman.generators.Base.extend({
     }.bind(this));
   },
 
+  /**
+   * Set paths depending on user's answers.
+   * @function setDefaults
+   * @private
+   */
   setDefaults: function() {
     if (this.ComponentType === 'standardModule') {
       this.directory = 'components/app/';
@@ -52,11 +86,21 @@ module.exports = yeoman.generators.Base.extend({
     }
   },
 
+  /**
+   * Removes all component's files.
+   * @function addApp
+   * @private
+   */
   removeApp: function () {
     // remove folder from app/
     this.fs.delete(this.directory + this.name);
   },
 
+  /**
+   * Removes component's styling from base file.
+   * @function addApp
+   * @private
+   */
   removeStyling: function () {
 
     var
@@ -84,6 +128,11 @@ module.exports = yeoman.generators.Base.extend({
     this.fs.write(path, newfile);
   },
 
+  /**
+   * Removes component's styling from requirejs config.
+   * @function addApp
+   * @private
+   */
   removeFromRequireJS: function () {
 
     var
@@ -103,3 +152,5 @@ module.exports = yeoman.generators.Base.extend({
   }
 
 });
+
+module.exports = RemovecomponentGenerator;

@@ -7,50 +7,64 @@ module.exports = function(grunt) {
 
     watch: {
       options: {
-        livereload: true,
         spawn: false
       },
 
       // Styling
       scss: {
         files: 'components/**/*.scss',
-        tasks: ['newer:imagemin', 'sync', 'compass:development', 'modernizr']
+        tasks: ['sync:webfonts', 'imagemin', 'compass:development', 'modernizr']
       },
 
       // Scripting
       js: {
         files: ['components/*.js', 'components/app/**/*.js', '!components/app/_deferred/**/*.js'],
-        tasks: ['requirejs:development', 'modernizr']
+        tasks: ['requirejs:development', 'modernizr'],
       },
       js_deferred: {
         files: ['components/app/_deferred/**/*.js'],
-        tasks: ['newer:uglify:deferred_development', 'modernizr']
+        tasks: ['uglify:deferred', 'modernizr'],
       },
       js_bower: {
-        files: ['components/libs/**/*.js'],
-        tasks: ['newer:uglify:external', 'requirejs:development']
+        files: ['components/bower/**/*.js'],
+        tasks: ['uglify:external', 'requirejs:development'],
+      },
+      json: {
+        options: { livereload: true },
+        files: ['components/app/**/*.json'],
+        tasks: ['sync:json'],
       },
 
       // HTML
       html: {
-        files: ['*.html', 'components/app/**/*.html' , '!components/libs/**/*.html', '!build/**/*.html'],
-        tasks: ['replace']
+        options: { livereload: true },
+        files: ['*.html','components/app/**/*.html' , '!components/bower/**/*.html', '!build/**/*.html'],
+        tasks: ['replace'],
       },
 
       // Images
       img_content: {
+        options: { livereload: true },
         files: 'img/**/*.{png,gif,jpg,svg}',
-        tasks: ['newer:imagemin:content']
+        tasks: ['imagemin:content'],
       },
       img_background: {
+        options: { livereload: true },
         files: 'components/**/*.{png,gif,jpg,svg}',
-        tasks: ['clean:css', 'newer:imagemin:backgrounds' , 'compass:development', 'clean:css', 'clean:svg']
+        tasks: ['clean:css', 'imagemin:backgrounds' , 'compass:development', 'clean:development'],
+      },
+
+      // websocket support
+      livereload: {
+        options: { livereload: true },
+        files: ['build/**/*.{css,js}']
       }
     },
 
     compass: {
       options: {
         asset_cache_buster: false,
+        bundleExec: true,
         cssDir: 'build/assets/css',
         httpFontsPath: '/assets/font',
         httpImagesPath: '/assets/img',
@@ -69,7 +83,7 @@ module.exports = function(grunt) {
       production: {
         options: {
           environment: 'production',
-          httpPath: "/" // . = relative
+          httpPath: '/' // . = relative
         }
       }
     },
@@ -80,7 +94,7 @@ module.exports = function(grunt) {
           excludeBuiltins: true,
           patterns: [
             {
-              match: /{(app|deferred):{([\w|\-]{0,})}}/g,
+              match: /{(app|deferred):{([\w|\-]*)}}/g,
               replacement: function (match, type, file) {
 
                 // use regular file
@@ -120,9 +134,9 @@ module.exports = function(grunt) {
 
     requirejs: {
       options: {
-        mainConfigFile: "components/<%= ProjectName %>.js",
-        name: "<%= ProjectName %>",
-        out: "build/assets/js/<%= ProjectName %>.js",
+        mainConfigFile: 'components/<%= ProjectName %>.js',
+        name: '<%= ProjectName %>',
+        out: 'build/assets/js/<%= ProjectName %>.js',
         useStrict: true
       },
       development: {
@@ -228,14 +242,11 @@ module.exports = function(grunt) {
     },
 
     clean: {
-      svg: {
-        src: ["build/assets/img/**/*.svg"]
-      },
       css: {
-        src: ["build/assets/css/**/*.css"]
+        src: ['build/assets/css/**/*.css']
       },
       build: {
-        src: ["build"]
+        src: ['build']
       }
     },
 
@@ -284,8 +295,8 @@ module.exports = function(grunt) {
           flatten: true,
           expand: true,
           cwd: '.',
-          src: ['favicon.ico', 'apple-touch-icon.png'],
-          dest: 'build'
+          src: ['favicon.ico', 'apple-touch-icon.png', 'windows-tile-icon.png'],
+          dest: 'build/assets/img'
         }],
         verbose: true
       }
@@ -293,17 +304,17 @@ module.exports = function(grunt) {
 
     modernizr: {
       dist: {
-        "devFile" : "components/libs/modernizr/modernizr.js",
-        "outputFile" : "build/assets/js/libs/modernizr.js",
-        "extra" : {
-          "shiv" : <% if (oldIE) { %>true<% } else { %>false<% } %>,
-          "printshiv" : <% if (oldIE) { %>true<% } else { %>false<% } %>,
-          "load" : false,
-          "mq" : false,
-          "cssclasses" : true
+        'devFile' : 'components/libs/modernizr/modernizr.js',
+        'outputFile' : 'build/assets/js/libs/modernizr.js',
+        'extra' : {
+          'shiv' : <% if (oldIE) { %>true<% } else { %>false<% } %>,
+          'printshiv' : <% if (oldIE) { %>true<% } else { %>false<% } %>,
+          'load' : false,
+          'mq' : false,
+          'cssclasses' : true
         },
-        "files" : {
-          "src": ['components/app/**/*.js', 'build/**/*.css']
+        'files' : {
+          'src': ['components/app/**/*.js', 'build/**/*.css']
         }
       }
     },
@@ -315,6 +326,19 @@ module.exports = function(grunt) {
           destination: 'documentation'
         }
       }
+    },
+
+    scsslint: {
+      options: {
+        bundleExec: true,
+        colorizeOutput: true,
+        compact: true,
+        config: '.scsslintrc',
+        reporterOutput: null
+      },
+      scss: [
+        'components/app/**/*.scss',
+      ]
     }
 
   });
@@ -322,19 +346,20 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-accessibility');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-compass');
+  grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-csslint');
   grunt.loadNpmTasks('grunt-contrib-imagemin');
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks("grunt-modernizr");
   grunt.loadNpmTasks('grunt-contrib-qunit');
-  grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-replace');
-  grunt.loadNpmTasks('grunt-sync');
-  grunt.loadNpmTasks('grunt-newer');
   grunt.loadNpmTasks('grunt-jsdoc');
+  grunt.loadNpmTasks('grunt-modernizr');
+  grunt.loadNpmTasks('grunt-newer');
+  grunt.loadNpmTasks('grunt-replace');
+  grunt.loadNpmTasks('grunt-scss-lint');
+  grunt.loadNpmTasks('grunt-sync');
 
   grunt.registerTask('default', [
     'clean:build',
@@ -345,7 +370,6 @@ module.exports = function(grunt) {
     'requirejs:development',
     'uglify:deferred_development',
     'uglify:external',
-    'clean:svg',
     'modernizr'
   ]);
 
@@ -363,6 +387,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('test', [
     'csslint',
+    'scsslint',
     'jshint',
     'accessibility',
     'connect',
