@@ -11,9 +11,9 @@ module.exports = function(grunt) {
       },
 
       // Styling
-      scss: {
-        files: 'components/**/*.scss',
-        tasks: ['sync:webfonts', 'imagemin', 'compass:development', 'modernizr']
+      css: {
+        files: 'components/**/*.css',
+        tasks: ['sync:webfonts', 'imagemin', 'postcss:development', 'modernizr']
       },
 
       // Scripting
@@ -61,30 +61,31 @@ module.exports = function(grunt) {
       }
     },
 
-    compass: {
-      options: {
-        asset_cache_buster: false,
-        bundleExec: true,
-        cssDir: 'build/assets/css',
-        httpFontsPath: '/assets/font',
-        httpImagesPath: '/assets/img',
-        imagesDir: 'build/assets/img',
-        noLineComments: true,
-        require: 'sass-css-importer',
-        sassDir: 'components',
-        specify: ['components/*.scss', 'components/app/_deferred/**/*.scss']
-      },
+    postcss: {
       development: {
         options: {
-          environment: 'development',
-          sourcemap: true
-        }
+          map: true, // inline sourcemaps
+          processors: [
+            require('postcss-import')(),
+            require('postcss-cssnext')({
+              browsers: 'last 2 versions'
+            }),
+            require('cssnano')({
+              autoprefixer: false,
+              safe: true
+            })
+          ]
+        },
+        src: 'components/<%= ProjectName %>.css',
+        dest: 'build/assets/css/<%= ProjectName %>.css'
       },
-      production: {
+      lint: {
         options: {
-          environment: 'production',
-          httpPath: '/' // . = relative
-        }
+          processors: [
+            require('stylelint')({/* your options */})
+          ]
+        },
+        src: 'components/app/**/*.css'
       }
     },
 
@@ -211,16 +212,6 @@ module.exports = function(grunt) {
       all: ['components/app/**/*.js']
     },
 
-    csslint: {
-      options: {
-        csslintrc: '.csslintrc',
-        import: false
-      },
-      lax: {
-        src: ['build/assets/css/**/*.css']
-      }
-    },
-
     accessibility: {
       options : {
         accessibilityLevel: 'WCAG2<%= WCAG2 %>',
@@ -326,28 +317,13 @@ module.exports = function(grunt) {
           destination: 'documentation'
         }
       }
-    },
-
-    scsslint: {
-      options: {
-        bundleExec: true,
-        colorizeOutput: true,
-        compact: true,
-        config: '.scsslintrc',
-        reporterOutput: null
-      },
-      scss: [
-        'components/app/**/*.scss',
-      ]
     }
 
   });
 
   grunt.loadNpmTasks('grunt-accessibility');
   grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-compass');
   grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-contrib-csslint');
   grunt.loadNpmTasks('grunt-contrib-imagemin');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-qunit');
@@ -357,8 +333,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-jsdoc');
   grunt.loadNpmTasks('grunt-modernizr');
   grunt.loadNpmTasks('grunt-newer');
+  grunt.loadNpmTasks('grunt-postcss');
   grunt.loadNpmTasks('grunt-replace');
-  grunt.loadNpmTasks('grunt-scss-lint');
   grunt.loadNpmTasks('grunt-sync');
 
   grunt.registerTask('default', [
@@ -366,7 +342,7 @@ module.exports = function(grunt) {
     'replace',
     'imagemin',
     'sync',
-    'compass:development',
+    'postcss:development',
     'requirejs:development',
     'uglify:deferred_development',
     'uglify:external',
@@ -386,8 +362,7 @@ module.exports = function(grunt) {
    ]);
 
   grunt.registerTask('test', [
-    'csslint',
-    'scsslint',
+    'postcss:lint',
     'jshint',
     'accessibility',
     'connect',
