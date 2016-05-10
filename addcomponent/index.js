@@ -21,16 +21,13 @@ lineNumber = require('line-number'),
 AddcomponentGenerator = yeoman.generators.NamedBase.extend({
 
   /**
-   * Loads package.json and waits for callback to finish. Also tells user what happened and gives a little help.
+   * Loads package.json and binds events.
    * @function init
    * @private
    */
   init: function () {
 
-    this.pkg = this.fs.readJSON('package.json');
-
     this.on('end', function () {
-
       // output a little help
       if (this.ComponentType === 'standardModule') {
         if(this.includeHTML) {
@@ -41,8 +38,23 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
           this.log('You can use it in your HTML with ' + chalk.yellow('{deferred:{' + string.slugify(this.name) + '}}'));
         }
       }
-
     });
+
+    // take care of error handling
+    this.on('error', function(message) {
+      // print error message
+      this.log.error(message);
+      // exit shell
+      process.exit(5);
+    });
+
+    // load package.json
+    try {
+      this.pkg = this._loadJSON('package.json');
+    } catch (error) {
+      this.emit('error', error);
+      return;
+    }
   },
 
   /**
@@ -53,6 +65,23 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
    */
   _hasFeature: function (feature) {
     return this.features && this.features.indexOf(feature) !== -1;
+  },
+
+  /**
+   * Loads JSON files.
+   * @function _loadJSON
+   * @returns {JSON} file's contents
+   * @private
+   */
+  _loadJSON: function(name) {
+    var json = this.fs.readJSON(name);
+
+    if(json) {
+      return json;
+    } else {
+      throw new Error('Could not open ' + name + '. Are you in root directory of the project?');
+    }
+
   },
 
   /**
@@ -208,6 +237,7 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
    * @private
    */
   addStyling: function () {
+
     if (this.includeSCSS) {
 
       var
@@ -220,6 +250,11 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
         path = 'components/_' + this.pkg.name + '.scss';
       }
 
+      // exit app when file doesn't exist
+      if(!this.fs.exists(path)) {
+        this.emit('error', 'Does ' + path + ' exist?');
+      }
+
       // read
       var
       file = this.fs.read(path),
@@ -230,9 +265,9 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
 
         // compose
         if (this.ComponentType === 'standardModule') {
-          file += '@import "app/' + string.slugify(this.name) + '/' + string.slugify(this.name) + '";\n';
+          file += '@import \'app/' + string.slugify(this.name) + '/' + string.slugify(this.name) + '\';\n';
         } else {
-          file += '@import "app/_deferred/' + string.slugify(this.name) + '/' + string.slugify(this.name) + '";\n';
+          file += '@import \'app/_deferred/' + string.slugify(this.name) + '/' + string.slugify(this.name) + '\';\n';
         }
 
         // write
@@ -255,8 +290,14 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
     if (this.includeJS) {
 
       var
-      path = 'components/' + this.pkg.name + '.js',
-      file = this.fs.read(path),
+      path = 'components/' + this.pkg.name + '.js';
+
+      // exit app when file doesn't exist
+      if(!this.fs.exists(path)) {
+        this.emit('error', 'Does ' + path + ' exist?');
+      }
+
+      var file = this.fs.read(path),
       match = '//{{app}}',
       regex = new RegExp('/' + string.slugify(this.name) + '/', 'g'),
       line = lineNumber(file, regex),
