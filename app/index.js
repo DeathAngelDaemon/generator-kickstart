@@ -163,23 +163,13 @@ KickstartGenerator = yeoman.generators.Base.extend({
     );
 
     this.fs.copyTpl(
-      this.templatePath('_gems.rb'),
-      this.destinationPath('gems.rb')
-    );
-
-    this.fs.copyTpl(
       this.templatePath('_editorconfig'),
       this.destinationPath('.editorconfig')
     );
 
     this.fs.copyTpl(
-      this.templatePath('_csslintrc'),
-      this.destinationPath('.csslintrc')
-    );
-
-    this.fs.copyTpl(
-      this.templatePath('_scsslintrc'),
-      this.destinationPath('.scsslintrc')
+      this.templatePath('_stylelintrc'),
+      this.destinationPath('_stylelintrc')
     );
 
     this.fs.copyTpl(
@@ -281,14 +271,14 @@ KickstartGenerator = yeoman.generators.Base.extend({
   },
 
   /**
-   * Create all scss files from templates.
+   * Create all css files from templates.
    * @function styles
    * @private
    */
   styles: function () {
     this.fs.copyTpl(
-      this.templatePath('_frontend-template-setup.scss'),
-      this.destinationPath('components/' + this.ProjectName + '.scss')
+      this.templatePath('_frontend-template-setup.css'),
+      this.destinationPath('components/' + this.ProjectName + '.css')
     );
   },
 
@@ -344,11 +334,6 @@ KickstartGenerator = yeoman.generators.Base.extend({
     if (!this.options['skip-install']) {
       // bower & npm
       this.installDependencies();
-
-      // gems
-      this.log('Running ' + chalk.yellow.bold('bundle install') + ' for you to install the required dependencies. If this fails, try running the command yourself.');
-      this.log('\n');
-      this.spawnCommand('bundle', ['install']);
     }
 
   }

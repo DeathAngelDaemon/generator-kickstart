@@ -49,13 +49,13 @@ describe('Kickstart:addcomponent', function () {
 
         // create dummy project-name.scss
         generator.fs.copy(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
-          generator.destinationPath('components/foo.scss')
+          generator.templatePath('../../app/templates/_frontend-template-setup.css'),
+          generator.destinationPath('components/foo.css')
         );
 
         // create dummy project-name.js
         generator.fs.copyTpl(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
+          generator.templatePath('../../app/templates/_frontend-template-setup.js'),
           generator.destinationPath('components/foo.js'),
           { oldIE: false }
         );
@@ -112,13 +112,13 @@ describe('Kickstart:addcomponent', function () {
 
         // create dummy hidden _project-name.scss
         generator.fs.copy(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
+          generator.templatePath('../../app/templates/_frontend-template-setup.css'),
           generator.destinationPath('components/_foo.scss')
         );
 
         // create dummy project-name.js
         generator.fs.copyTpl(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
+          generator.templatePath('../../app/templates/_frontend-template-setup.js'),
           generator.destinationPath('components/foo.js'),
           { oldIE: false }
         );
@@ -173,13 +173,13 @@ describe('Kickstart:addcomponent', function () {
 
         // create dummy project-name.scss
         generator.fs.copy(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
+          generator.templatePath('../../app/templates/_frontend-template-setup.css'),
           generator.destinationPath('components/bar.scss')
         );
 
         // create dummy project-name.js
         generator.fs.copyTpl(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
+          generator.templatePath('../../app/templates/_frontend-template-setup.js'),
           generator.destinationPath('components/bar.js'),
           { oldIE: false }
         );
@@ -193,12 +193,12 @@ describe('Kickstart:addcomponent', function () {
       assert.file(files);
     });
 
-    it('is the new module wired to project-name.scss?', function () {
-      assert.fileContent('components/bar.scss', /@import \'app\/_deferred\/bar\/bar\';/);
+    it('is the new module wired to project-name.css?', function () {
+      assert.fileContent('components/bar.css', /@import \'app\/_deferred\/bar\/bar\';/);
     });
 
     it('is the new module wired to project-name.js?', function () {
-      assert.fileContent('components/bar.scss', /app\/_deferred\/bar\/bar/);
+      assert.fileContent('components/bar.js', /app\/_deferred\/bar\/bar/);
     });
 
   });

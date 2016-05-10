@@ -133,15 +133,15 @@ RemovecomponentGenerator = yeoman.generators.NamedBase.extend({
   removeStyling: function () {
 
     var
-    path = 'components/' + this.pkg.name + '.scss',
+    path = 'components/' + this.pkg.name + '.css',
     match,
     newcontent = '';
 
-    // also enable to use hidden scss with _
-    // this way project-name.scss can be imported
+    // also enable to use hidden css with _
+    // this way project-name.css can be imported
     // for theming support
     if(!this.fs.exists(path)) {
-      path = 'components/_' + this.pkg.name + '.scss';
+      path = 'components/_' + this.pkg.name + '.css';
     }
 
     // exit app when file doesn't exist

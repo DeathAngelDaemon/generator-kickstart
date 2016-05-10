@@ -45,13 +45,13 @@ describe('Kickstart:removecomponent', function () {
 
         // create dummy project-name.scss
         generator.fs.copy(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
-          generator.destinationPath('components/foo.scss')
+          generator.templatePath('../../app/templates/_frontend-template-setup.css'),
+          generator.destinationPath('components/foo.css')
         );
 
         // create dummy project-name.js
         generator.fs.copyTpl(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
+          generator.templatePath('../../app/templates/_frontend-template-setup.js'),
           generator.destinationPath('components/foo.js'),
           { oldIE: false }
         );
@@ -114,13 +114,13 @@ describe('Kickstart:removecomponent', function () {
 
         // create dummy project-name.scss
         generator.fs.copy(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
-          generator.destinationPath('components/bar.scss')
+          generator.templatePath('../../app/templates/_frontend-template-setup.css'),
+          generator.destinationPath('components/bar.css')
         );
 
         // create dummy project-name.js
         generator.fs.copyTpl(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
+          generator.templatePath('../../app/templates/_frontend-template-setup.js'),
           generator.destinationPath('components/bar.js'),
           { oldIE: false }
         );
@@ -144,7 +144,7 @@ describe('Kickstart:removecomponent', function () {
 
   });
 
-  describe('yo kickstart:removecomponent bar (hidden _project-name.scss)', function () {
+  describe('yo kickstart:removecomponent bar (hidden _project-name.css)', function () {
 
     var prompts = {
       ComponentType: 'standardModule',
@@ -176,13 +176,13 @@ describe('Kickstart:removecomponent', function () {
 
         // create dummy hidden _project-name.scss
         generator.fs.copy(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
-          generator.destinationPath('components/_bar.scss')
+          generator.templatePath('../../app/templates/_frontend-template-setup.css'),
+          generator.destinationPath('components/_bar.css')
         );
 
         // create dummy project-name.js
         generator.fs.copyTpl(
-          generator.templatePath('../../app/templates/_frontend-template-setup.scss'),
+          generator.templatePath('../../app/templates/_frontend-template-setup.js'),
           generator.destinationPath('components/bar.js'),
           { oldIE: false }
         );

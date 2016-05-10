@@ -117,8 +117,8 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
             checked: true
           },
           {
-            name: 'SCSS',
-            value: 'includeSCSS',
+            name: 'CSS',
+            value: 'includeCSS',
             checked: true
           },
           {
@@ -142,7 +142,7 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
       this.includeHTML = this._hasFeature('includeHTML');
       this.includeJS = this._hasFeature('includeJS');
       this.includeQUnit = this._hasFeature('includeQUnit');
-      this.includeSCSS = this._hasFeature('includeSCSS');
+      this.includeCSS = this._hasFeature('includeCSS');
 
       this.ComponentType = answers.ComponentType;
 
@@ -192,17 +192,17 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
     }
 
     // use underscored file name for standard modules
-    var SCSSFile = path + '/_' + string.slugify(this.name) + '.scss';
+    var CSSFile = path + '/_' + string.slugify(this.name) + '.css';
 
     // use normal filename to render deferred file
     if(this.ComponentType === 'DeferredModule') {
-      SCSSFile = path + '/' + string.slugify(this.name) + '.scss';
+      CSSFile = path + '/' + string.slugify(this.name) + '.css';
     }
 
-    if (this.includeSCSS) {
+    if (this.includeCSS) {
       this.fs.copyTpl(
-        this.templatePath('_component.scss'),
-        this.destinationPath(SCSSFile),
+        this.templatePath('_component.css'),
+        this.destinationPath(CSSFile),
         {
           slug_name: string.slugify(this.name)
         }
@@ -232,22 +232,22 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
   },
 
   /**
-   * Add the new component to the scss base file.
+   * Add the new component to the css base file.
    * @function addStyling
    * @private
    */
   addStyling: function () {
 
-    if (this.includeSCSS) {
+    if (this.includeCSS) {
 
       var
-      path = 'components/' + this.pkg.name + '.scss';
+      path = 'components/' + this.pkg.name + '.css';
 
-      // also enable to use hidden scss with _
-      // this way project-name.scss can be imported
+      // also enable to use hidden css with _
+      // this way project-name.css can be imported
       // for theming support
       if(!this.fs.exists(path)) {
-        path = 'components/_' + this.pkg.name + '.scss';
+        path = 'components/_' + this.pkg.name + '.css';
       }
 
       // exit app when file doesn't exist
@@ -274,7 +274,7 @@ AddcomponentGenerator = yeoman.generators.NamedBase.extend({
         this.fs.write(path, file);
 
       } else {
-        // component is already in main scss file
+        // component is already in main css file
         this.log(chalk.cyan('already defined on line: ') + chalk.yellow(line[0].number) + ' (' + path + ')');
       }
     }
